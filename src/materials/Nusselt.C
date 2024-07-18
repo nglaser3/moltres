@@ -18,28 +18,31 @@ Nusselt::validParams()
   params.addCoupledVar("u_velocity","scalar variable holding u component of velocity");
   params.addCoupledVar("v_velocity","scalar variable holding v component of velocity");
   params.addCoupledVar("w_velocity","scalar variable holding w component of velocity");
+  params.addParam<std::string>("re_material_name","ReynoldsNumber",
+  "Name of generated reynolds number material property");
+  params.addParam<std::string>("nu_material_name","NusseltNumber",
+  "Name of generated nusselt number material property");
+  params.addParam<std::string>("h_material_name","HeatTransferCoeff",
+  "Name of generated heat transfer coefficient material property");
   return params;
 }
 
 Nusselt::Nusselt(const InputParameters & parameters)
   : Material(parameters),
-    _k(getMaterialProperty<Real>(getParam<std::string>("thermal_conductivity"))),
+    _k(getMaterialProperty<Real>("thermal_conductivity")),
     _l_value(getParam<Real>("L")),
-    _pr(getMaterialProperty<Real>(getParam<std::string>("prandtl_number"))),
-    _kin_visc(getMaterialProperty<Real>(getParam<std::string>("kinematic_viscosity"))),
+    _pr(getMaterialProperty<Real>("prandtl_number")),
+    _kin_visc(getMaterialProperty<Real>("kinematic_viscosity")),
     _correlation(getParam<MooseEnum>("nusselt_correlation")),
-    _re(declareProperty<Real>("ReynoldsNumber")),
-    _nu(declareProperty<Real>("NusseltNumber")),
-    _h(declareProperty<Real>("HeatTransferCoeff"))
+    _u_vel(_correlation!="Krepel"? &coupledValue("u_velocity") : nullptr),
+    _v_vel(_correlation!="Krepel"? &coupledValue("v_velocity") : nullptr),
+    _w_vel(_correlation!="Krepel"? &coupledValue("w_velocity") : nullptr),
+    _re(declareProperty<Real>(getParam<std::string>("re_material_name"))),
+    _nu(declareProperty<Real>(getParam<std::string>("nu_material_name"))),
+    _h(declareProperty<Real>(getParam<std::string>("h_material_name")))
 {
-  if (_correlation != "Krepel")
-  {
-    _u_vel(&coupledValue("u_velocity"));
-    _v_vel(&coupledValue("v_velocity"));
-    _w_vel(&coupledValue("w_velocity"));
-  }
 }
-
+ 
 /* assumes velocity is an elemental variable
 *See moose/framework/<include or src>/auxkernels/VectorVariableComponentAux
 *for finding components of elemantal vs nodal vector variables

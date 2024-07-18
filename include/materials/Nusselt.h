@@ -17,19 +17,19 @@ protected:
   virtual void computeQpProperties() override;
   Real computeSpeed();
 
-  MaterialProperty<Real> _k;
-  MaterialProperty<Real> _pr;
-  MaterialProperty<Real> _kin_visc;
-
+  const MaterialProperty<Real> & _k;
   Real _l_value;
-  MooseEnum _correlation; 
 
+  const MaterialProperty<Real> & _pr;
+  const MaterialProperty<Real> & _kin_visc;
+  
+  MooseEnum _correlation; 
+  
   const VariableValue * const _u_vel;
   const VariableValue * const _v_vel;
   const VariableValue * const _w_vel;
-  
+
   MaterialProperty<Real> & _re;
   MaterialProperty<Real> & _nu;
   MaterialProperty<Real> & _h;
-
 };
