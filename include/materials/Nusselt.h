@@ -3,6 +3,8 @@
 #include "Material.h"
 #include "SplineInterpolation.h"
 #include "BicubicSplineInterpolation.h"
+#include <cmath>
+#include "INSADTauMaterial.h"
 
 class Nusselt : public Material
 {
@@ -13,9 +15,21 @@ public:
 
 protected:
   virtual void computeQpProperties() override;
+  Real computeSpeed();
 
   const MaterialProperty<Real> & _k;
   Real _l_value;
+
+  const MaterialProperty<Real> & _pr;
+  const MaterialProperty<Real> & _kin_visc;
+  
+  MooseEnum _correlation; 
+  
+  const VariableValue * const _u_vel;
+  const VariableValue * const _v_vel;
+  const VariableValue * const _w_vel;
+
+  MaterialProperty<Real> & _re;
   MaterialProperty<Real> & _nu;
   MaterialProperty<Real> & _h;
 };
