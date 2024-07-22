@@ -6,12 +6,13 @@ InputParameters
 Nusselt::validParams()
 {
   InputParameters params = Material::validParams();
-  params.addRequiredParam<std::string>("thermal_conductivity", 
-                                      "Thermal conductivity of fluid");
+  params.addRequiredParam<MaterialPropertyName>("thermal_conductivity", 
+        "Name of material property holding thermal conductivity of fluid");
   params.addRequiredParam<Real>("L", "The channel radius");
-  params.addParam<std::string>("prandtl_number","Prandtl number of fluid");
-  params.addParam<std::string>("kinematic_viscosity",
-  "The kinematic viscosity of the fluid, dynamic viscosity divided by the density");
+  params.addParam<MaterialPropertyName>("prandtl_number",
+  "Name of material property holding prandtl number of fluid");
+  params.addParam<MaterialPropertyName>("kinematic_viscosity",
+  "Name of material property holding the kinematic viscosity of the fluid, dynamic viscosity divided by the density");
   MooseEnum nusselt_correlation("Krepel Dittus-Boelter", "Krepel");
   params.addParam<MooseEnum>("nusselt_correlation",nusselt_correlation,
           "Which correlation to use to approximate the Nusselt number");

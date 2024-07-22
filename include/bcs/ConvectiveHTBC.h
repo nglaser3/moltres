@@ -10,11 +10,11 @@ public:
     ConvectiveHTBC(const InputParameters & parameters);
     
 protected:
-    virtual Real computeQpResidual();
+    virtual Real computeQpResidual() override;
 
-    virtual Real computeQpJacobian();
+    virtual Real computeQpJacobian() override;
 
     const MaterialProperty<Real> & _h;
-    const Real _bulk_temp;
+    const VariableValue & _bulk_temp;
 };
 
