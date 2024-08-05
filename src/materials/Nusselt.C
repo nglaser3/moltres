@@ -35,22 +35,40 @@ Nusselt::Nusselt(const InputParameters & parameters)
     _pr(getMaterialProperty<Real>("prandtl_number")),
     _kin_visc(getMaterialProperty<Real>("kinematic_viscosity")),
     _correlation(getParam<MooseEnum>("nusselt_correlation")),
-    _u_vel(_correlation!="Krepel"? &coupledValue("u_velocity") : nullptr),
-    _v_vel(_correlation!="Krepel"? &coupledValue("v_velocity") : nullptr),
-    _w_vel(_correlation!="Krepel"? &coupledValue("w_velocity") : nullptr),
+    _u_vel(_correlation!="Krepel" && isParamValid("u_velocity") ? 
+          &coupledValue("u_velocity") : nullptr),
+    _v_vel(_correlation!="Krepel" && isParamValid("v_velocity") ? 
+          &coupledValue("v_velocity") : nullptr),
+    _w_vel(_correlation!="Krepel" && isParamValid("w_velocity") ?  
+          &coupledValue("w_velocity") : nullptr),
     _re(declareProperty<Real>(getParam<std::string>("re_material_name"))),
     _nu(declareProperty<Real>(getParam<std::string>("nu_material_name"))),
     _h(declareProperty<Real>(getParam<std::string>("h_material_name")))
 {
+    _velocity = {_u_vel, _v_vel, _w_vel};
+    for (int i = 2; i >= 0; i--)
+    {
+      if(_velocity[i] == nullptr)
+        {
+          _velocity.erase(_velocity.begin() + i);
+        }
+    }
+    
 }
  
 /* assumes velocity is an elemental variable
 *See moose/framework/<include or src>/auxkernels/VectorVariableComponentAux
 *for finding components of elemantal vs nodal vector variables
 */
-Real Nusselt::computeSpeed()
+Real Nusselt::computeVelocityMagnitude(unsigned int qp)
 {
-    return std::pow(std::pow((*_u_vel)[_qp],2) + std::pow((*_v_vel)[_qp],2) + std::pow((*_w_vel)[_qp],2),0.5);
+    Real speed = 0.0;
+    for (int i = 0; i < _velocity.size(); i++)
+    {
+      speed += std::pow((*_velocity[i])[qp],2);
+    }
+    return std::pow(speed,0.5);
+    //return std::pow(std::pow((*_u_vel)[qp],2) + std::pow((*_v_vel)[qp],2) + std::pow((*_w_vel)[qp],2),0.5);
 }
 
 void
@@ -58,7 +76,7 @@ Nusselt::computeQpProperties()
 {
   if (_correlation=="Dittus-Boelter")
   {
-    _re[_qp] = computeSpeed() * _l_value / _kin_visc[_qp];
+    _re[_qp] = computeVelocityMagnitude(_qp) * _l_value / _kin_visc[_qp];
     _nu[_qp] = 0.023 * std::pow(_re[_qp],0.8) * std::pow(_pr[_qp],0.4);
   };
   if (_correlation=="Krepel")

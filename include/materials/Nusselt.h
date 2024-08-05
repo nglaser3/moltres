@@ -4,6 +4,7 @@
 #include "SplineInterpolation.h"
 #include "BicubicSplineInterpolation.h"
 #include <cmath>
+#include <vector>
 #include "INSADTauMaterial.h"
 
 class Nusselt : public Material
@@ -15,7 +16,7 @@ public:
 
 protected:
   virtual void computeQpProperties() override;
-  Real computeSpeed();
+  Real computeVelocityMagnitude(unsigned int qp);
 
   const MaterialProperty<Real> & _k;
   Real _l_value;
@@ -32,4 +33,6 @@ protected:
   MaterialProperty<Real> & _re;
   MaterialProperty<Real> & _nu;
   MaterialProperty<Real> & _h;
+
+  std::vector< const VariableValue *> _velocity;
 };
