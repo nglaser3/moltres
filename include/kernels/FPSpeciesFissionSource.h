@@ -14,7 +14,7 @@ public:
 protected:
     virtual Real computeQpResidual() override;
     virtual Real computeQpJacobian() override;
-    //virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
+    virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
 
     unsigned int _num_groups;
     const std::vector<Real> _gamma;

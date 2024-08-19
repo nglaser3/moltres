@@ -61,7 +61,7 @@ FPSpeciesFissionSource::computeQpJacobian()
 
 
 Real
-FPSpeciesSource::computeQpOffDiagJacobian(unsigned int jvar)
+FPSpeciesFissionSource::computeQpOffDiagJacobian(unsigned int jvar)
 {
   Real jac = 0.0;
   for (unsigned int i = 0; i < _num_groups; ++i)
