@@ -41,9 +41,9 @@ Nusselt::Nusselt(const InputParameters & parameters)
           &coupledValue("v_velocity") : nullptr),
     _w_vel(_correlation!="Krepel" && isParamValid("w_velocity") ?  
           &coupledValue("w_velocity") : nullptr),
-    _re(declareProperty<Real>(getParam<std::string>("re_material_name"))),
-    _nu(declareProperty<Real>(getParam<std::string>("nu_material_name"))),
-    _h(declareProperty<Real>(getParam<std::string>("h_material_name")))
+    _reynolds(declareProperty<Real>(getParam<std::string>("re_material_name"))),
+    _nusselt(declareProperty<Real>(getParam<std::string>("nu_material_name"))),
+    _heat_transfer_coeff(declareProperty<Real>(getParam<std::string>("h_material_name")))
 {
     _velocity = {_u_vel, _v_vel, _w_vel};
     for (int i = 2; i >= 0; i--)
@@ -53,13 +53,9 @@ Nusselt::Nusselt(const InputParameters & parameters)
           _velocity.erase(_velocity.begin() + i);
         }
     }
-    
 }
  
-/* assumes velocity is an elemental variable
-*See moose/framework/<include or src>/auxkernels/VectorVariableComponentAux
-*for finding components of elemantal vs nodal vector variables
-*/
+
 Real Nusselt::computeVelocityMagnitude(unsigned int qp)
 {
     Real speed = 0.0;
@@ -68,7 +64,6 @@ Real Nusselt::computeVelocityMagnitude(unsigned int qp)
       speed += std::pow((*_velocity[i])[qp],2);
     }
     return std::pow(speed,0.5);
-    //return std::pow(std::pow((*_u_vel)[qp],2) + std::pow((*_v_vel)[qp],2) + std::pow((*_w_vel)[qp],2),0.5);
 }
 
 void
@@ -76,14 +71,14 @@ Nusselt::computeQpProperties()
 {
   if (_correlation=="Dittus-Boelter")
   {
-    _re[_qp] = computeVelocityMagnitude(_qp) * _l_value / _kin_visc[_qp];
-    _nu[_qp] = 0.023 * std::pow(_re[_qp],0.8) * std::pow(_pr[_qp],0.4);
+    _reynolds[_qp] = computeVelocityMagnitude(_qp) * _l_value / _kin_visc[_qp];
+    _nusselt[_qp] = 0.023 * std::pow(_reynolds[_qp],0.8) * std::pow(_pr[_qp],0.4);
   };
   if (_correlation=="Krepel")
   {
     /* Forced laminar flow; J. Křepel et al. / Annals of Nuclear Energy 34 (2007) 449–462 */
-    _re[_qp] = 0.; //place holder for no reynolds
-    _nu[_qp] = 4.;
+    _reynolds[_qp] = 0.; //place holder for no reynolds
+    _nusselt[_qp] = 4.;
   };
-  _h[_qp] = _nu[_qp] * _k[_qp] / _l_value;
+  _heat_transfer_coeff[_qp] = _nusselt[_qp] * _k[_qp] / _l_value;
 }

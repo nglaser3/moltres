@@ -30,9 +30,9 @@ protected:
   const VariableValue * const _v_vel;
   const VariableValue * const _w_vel;
 
-  MaterialProperty<Real> & _re;
-  MaterialProperty<Real> & _nu;
-  MaterialProperty<Real> & _h;
+  MaterialProperty<Real> & _reynolds;
+  MaterialProperty<Real> & _nusselt;
+  MaterialProperty<Real> & _heat_transfer_coeff;
 
   std::vector< const VariableValue *> _velocity;
 };
