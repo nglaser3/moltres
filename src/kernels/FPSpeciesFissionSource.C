@@ -1,9 +1,9 @@
-#include "FPSpeciesSource.h"
+#include "FPSpeciesFissionSource.h"
 
- registerMooseObject("MoltresApp",FPSpeciesSource);
+ registerMooseObject("MoltresApp",FPSpeciesFissionSource);
 
  InputParameters
- FPSpeciesSource::validParams()
+ FPSpeciesFissionSource::validParams()
  {
     InputParameters params = Kernel::validParams();
     params += ScalarTransportBase::validParams();
@@ -20,7 +20,7 @@
     return params;
  }
 
- FPSpeciesSource::FPSpeciesSource(const InputParameters & parameters)
+ FPSpeciesFissionSource::FPSpeciesFissionSource(const InputParameters & parameters)
    : Kernel(parameters),
      ScalarTransportBase(parameters),
      _num_groups(getParam<unsigned>("num_groups")),
@@ -43,7 +43,7 @@
 }
 
 Real
-FPSpeciesSource::computeQpResidual()
+FPSpeciesFissionSource::computeQpResidual()
 {
   Real r = 0;
   for (unsigned int i = 0; i < _num_groups; ++i)
@@ -54,7 +54,7 @@ FPSpeciesSource::computeQpResidual()
 }
 
 Real
-FPSpeciesSource::computeQpJacobian()
+FPSpeciesFissionSource::computeQpJacobian()
 {
   return 0.0; //decay has no temperature dependence, neither does fission yield
 }

@@ -2,12 +2,12 @@
 
 #include "ScalarTransportBase.h"
 
-class FPSpeciesTransmutationIn : public Kernel, public ScalarTransportBase
+class FPSpeciesTransmutationSource : public Kernel, public ScalarTransportBase
 {
 
 public:
     static InputParameters validParams();
-    FPSpeciesTransmutationIn(const InputParameters & parameters);
+    FPSpeciesTransmutationSource(const InputParameters & parameters);
 
 protected:
     virtual Real computeQpResidual() override;

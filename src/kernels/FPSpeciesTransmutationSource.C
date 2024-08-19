@@ -1,11 +1,11 @@
 #pragma once
 
-#include "FPSpeciesTransmutationIn.h"
+#include "FPSpeciesTransmutationSource.h"
 
-registerMooseObject("MoltresApp", FPSpeciesTransmutationIn);
+registerMooseObject("MoltresApp", FPSpeciesTransmutationSource);
 
 InputParameters 
-FPSpeciesTransmutationIn::validParams()
+FPSpeciesTransmutationSource::validParams()
 {
     params = Kernel::validParams();
     params += ScalarTransportBase::validParams();
@@ -32,7 +32,7 @@ FPSpeciesTransmutationIn::validParams()
     "The temperature used to interpolate material properties.");
 }
 
-FPSpeciesTransmutationIn::FPSpeciesTransmutationIn(const InputParameters & parameters)
+FPSpeciesTransmutationSource::FPSpeciesTransmutationSource(const InputParameters & parameters)
   : Kernel(parameters),
     ScalarTransportBase(parameters),
     _parent_zaids(getParam<std::vector<std::string>>("parent_identifiers")),
@@ -73,7 +73,7 @@ FPSpeciesTransmutationIn::FPSpeciesTransmutationIn(const InputParameters & param
 }
 
 Real
-FPSpeciesTransmutationIn::computeQpResidual()
+FPSpeciesTransmutationSource::computeQpResidual()
 {
     Real res = 0.0;
     for (int i = 0; i < num_parents; i++)
@@ -94,7 +94,7 @@ FPSpeciesTransmutationIn::computeQpResidual()
 }
 
 Real 
-FPSpeciesTransmutationIn::computeQpJacobian()
+FPSpeciesTransmutationSource::computeQpJacobian()
 {
     return 0.0;
 }

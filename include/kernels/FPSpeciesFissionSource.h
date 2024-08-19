@@ -3,18 +3,18 @@
 #include "Kernel.h"
 #include "ScalarTransportBase.h"
 
-class FPSpeciesSource : public Kernel, public ScalarTransportBase
+class FPSpeciesFissionSource : public Kernel, public ScalarTransportBase
 {
 
 public:
-    FPSpeciesSource(const InputParameters & parameters);
+    FPSpeciesFissionSource(const InputParameters & parameters);
 
     static InputParameters validParams();
 
 protected:
     virtual Real computeQpResidual() override;
     virtual Real computeQpJacobian() override;
-    virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
+    //virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
 
     unsigned int _num_groups;
     const std::vector<Real> _gamma;
