@@ -20,6 +20,6 @@ protected:
     MaterialProperty<Real> & _lambda;
     MaterialProperty<Real> & _fis_yield;
     MaterialProperty<std::vector<Real>> & _abs_xs;
-    MaterialProperty<std::map<std::string,std::vector<Real>>> & _dp_props;
-    MaterialProperty<std::map<std::string,std::vector<Real>>> & _tp_props;
+    MaterialProperty<std::unordered_map<std::string,std::vector<Real>>> & _dp_props;
+    MaterialProperty<std::unordered_map<std::string,std::vector<Real>>> & _tp_props;
 };

@@ -26,8 +26,8 @@ SpeciesTrackMaterial::SpeciesTrackMaterial(const InputParameters & parameters)
     _lambda(declareProperty<Real>(_nuclide+"_lambda")),
     _fis_yield(declareProperty<Real>(_nuclide+"_fisyield")),
     _abs_xs(declareProperty<vector<Real>>(_nuclide+"_absxs")),
-    _dp_props(declareProperty<map<string, vector<Real>>>(_nuclide+"_dp_data")),
-    _tp_props(declareProperty<map<string,vector<Real>>>(_nuclide+"_tp_data"))
+    _dp_props(declareProperty<unordered_map<string, vector<Real>>>(_nuclide+"_dp_data")),
+    _tp_props(declareProperty<unordered_map<string,vector<Real>>>(_nuclide+"_tp_data"))
 {       
 }
 

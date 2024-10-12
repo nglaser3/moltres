@@ -33,7 +33,7 @@ SpeciesTransmuteSource::SpeciesTransmuteSource(const InputParameters & parameter
       _num_groups(getParam<int>("num_groups")),
       _parents(getParam<std::vector<std::string>>("parent_names")),
       _num_parents(_parents.size()),
-      _tp_map(getMaterialProperty<std::map<std::string,std::vector<Real>>>("transmute_material"))
+      _tp_map(getMaterialProperty<std::unordered_map<std::string,std::vector<Real>>>("transmute_material"))
 {
 
     _parent_concs.resize(_num_parents);
@@ -59,11 +59,12 @@ Real
 SpeciesTransmuteSource::computeQpResidual()
 {
     Real res = 0.0;
+    std::unordered_map<std::string,std::vector<Real>> _map = _tp_map[_qp];
     for (int i = 0; i < _num_groups; i++)
     {
         for (int j = 0; j < _num_parents; j++)
         {
-            res += _test[_i][_qp] * _tp_map[_qp][_parents[j]][i]
+            res += _test[_i][_qp] * _map[_parents[j]][i]
             * computeConcentration((*_parent_concs[j]),_qp)
             * computeConcentration((*_group_fluxes[i]),_qp);
         }
@@ -81,13 +82,14 @@ Real
 SpeciesTransmuteSource::computeQpOffDiagJacobian(unsigned int jvar)
 {
     Real jac = 0.0;
+    std::unordered_map<std::string,std::vector<Real>> _map = _tp_map[_qp];
     for (int i = 0; i < _num_groups; ++i)
     {
         if (jvar == _flux_ids[i])
         {
             for (int j = 0; j < _num_parents; ++j)
             {
-                jac -= _test[_i][_qp] * _tp_map[_qp][_parents[j]][i]
+                jac -= _test[_i][_qp] * _map[_parents[j]][i]
                 * computeConcentrationDerivative((*_group_fluxes[i]),_phi, _j, _qp) 
                 * computeConcentration((*_parent_concs[j]),_qp);
             }
@@ -101,7 +103,7 @@ SpeciesTransmuteSource::computeQpOffDiagJacobian(unsigned int jvar)
         {
             for (int j = 0; j < _num_groups; ++j)
             {
-                jac -= _test[_i][_qp] * _tp_map[_qp][_parents[i]][j]
+                jac -= _test[_i][_qp] * _map[_parents[i]][j]
                 * computeConcentration((*_group_fluxes[j]),_qp)
                 * computeConcentrationDerivative((*_parent_concs[i]),_phi, _j, _qp);
             }

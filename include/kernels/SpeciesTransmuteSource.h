@@ -18,7 +18,7 @@ protected:
     std::vector<std::string> _parents;
     unsigned int _num_parents;
 
-    const MaterialProperty<std::map<std::string,std::vector<Real>>> & _tp_map;
+    const MaterialProperty<std::unordered_map<std::string,std::vector<Real>>> & _tp_map;
 
     std::vector<const VariableValue*> _parent_concs;
     std::vector<unsigned int> _parent_ids;
