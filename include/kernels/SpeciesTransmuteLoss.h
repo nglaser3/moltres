@@ -13,7 +13,11 @@ public:
 protected:
     virtual Real computeQpResidual() override;
     virtual Real computeQpJacobian() override;
+    virtual Real computeQpOffDiagJacobian(unsigned int jvar) override;
+    
+    unsigned int _num_groups;
+    const MaterialProperty<std::vector<Real>> & _abs_xs;
 
-    const MaterialProperty<Real> & _abs_xs;
-
+    std::vector<const VariableValue*> _group_fluxes;
+    std::vector<unsigned int> _flux_ids;
 };
