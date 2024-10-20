@@ -26,7 +26,7 @@ SpeciesDecaySource::SpeciesDecaySource(const InputParameters & parameters)
       ScalarTransportBase(parameters),
       _parents(getParam<std::vector<std::string>>("parent_names")),
       _num_parents(_parents.size()),
-      _dp_map(getMaterialProperty<std::unordered_map<std::string,std::vector<Real>>>("decay_parent_material"))
+      _dp_map(getMaterialProperty<std::unordered_map<std::string,Real>>("decay_parent_material"))
 {
     _parent_concs.resize(_num_parents);
     _parent_ids.resize(_num_parents);
@@ -42,11 +42,10 @@ Real
 SpeciesDecaySource::computeQpResidual()
 {
     Real res = 0.0;
-    std::unordered_map<std::string,std::vector<Real>> _map = _dp_map[_qp];
 
     for (int i = 0; i < _num_parents; i++)
     {
-        res += _test[_i][_qp] * _map[_parents[i]][0]*_map[_parents[i]][1]
+        res += _test[_i][_qp] * _dp_map[_qp].at(_parents[i])
         * computeConcentration((*_parent_concs[i]),_qp);
     }
     return res;
@@ -62,14 +61,12 @@ Real
 SpeciesDecaySource::computeQpOffDiagJacobian(unsigned int jvar)
 {
     Real jac = 0.0;
-    std::unordered_map<std::string,std::vector<Real>> _map = _dp_map[_qp];
 
     for (int i = 0; i < _num_parents; i++)
     {
         if (jvar == _parent_ids[i])
         {
-            jac -= _test[_i][_qp] * _map[_parents[i]][0]
-            * _map[_parents[i]][1] 
+            jac -= _test[_i][_qp] * _dp_map[_qp].at(_parents[i])
             * computeConcentrationDerivative((*_parent_concs[i]),_phi,_j,_qp);
             break;
         }
