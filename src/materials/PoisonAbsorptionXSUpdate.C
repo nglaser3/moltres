@@ -1,0 +1,118 @@
+#pragma once
+
+#include "PoisonAbsorptionXSUpdate.h"
+
+registerMooseObject("MoltresApp",PoisonAbsorptionXSUpdate);
+
+InputParameters
+PoisonAbsorptionXSUpdate::validParams()
+{
+    InputParameters params = GenericMoltresMaterial::validParams();
+    params += ScalarTransportBase::validParams();
+    params.addRequiredCoupledVar("poison_conc",
+    "Variable holding the concentration of the poison.");
+    params.addRequiredParam<std::string>("poison_name",
+    "Name of the nuclide this material operates with."
+    "i.e. Xe135.");
+    return params;
+}
+
+PoisonAbsorptionXSUpdate::PoisonAbsorptionXSUpdate(const InputParameters & parameters)
+    : GenericMoltresMaterial(parameters),
+      ScalarTransportBase(parameters),
+      _poison(coupledValue("poison_conc")),
+      _nuclide(getParam<std::string>("poison_name")),
+      _abs_xs(getMaterialProperty<std::vector<Real>>(_nuclide+"_absxs"))
+{
+}
+
+
+void
+PoisonAbsorptionXSUpdate::computeSplineAbsorbingQpProperties()
+{
+  for (decltype(_num_groups) i = 0; i < _num_groups; ++i)
+  {
+    /*######### What this material does ##############*/
+    _remxs[_qp][i] =
+        _xsec_spline_interpolators["REMXS"][i].sample(_temperature[_qp]) 
+        + computeConcentration(_poison,_qp) * _abs_xs[_qp][i];
+    /*##################################################################################*/
+    _fissxs[_qp][i] = _xsec_spline_interpolators["FISSXS"][i].sample(_temperature[_qp]);
+    _nsf[_qp][i] = _xsec_spline_interpolators["NSF"][i].sample(_temperature[_qp]);
+    _fisse[_qp][i] = _xsec_spline_interpolators["FISSE"][i].sample(_temperature[_qp]) * 1e6 *
+                     1.6e-19; // convert from MeV to Joules
+    _diffcoef[_qp][i] = _xsec_spline_interpolators["DIFFCOEF"][i].sample(_temperature[_qp]);
+    _recipvel[_qp][i] = _xsec_spline_interpolators["RECIPVEL"][i].sample(_temperature[_qp]);
+    _chi_t[_qp][i] = _xsec_spline_interpolators["CHI_T"][i].sample(_temperature[_qp]);
+    _chi_p[_qp][i] = _xsec_spline_interpolators["CHI_P"][i].sample(_temperature[_qp]);
+    //FUTURE WORK TO IMPLEMENT D_TEMP, no current temperature derivative from openmc
+    _d_remxs_d_temp[_qp][i] =
+        _xsec_spline_interpolators["REMXS"][i].sampleDerivative(_temperature[_qp]);
+    /*#################################################################################*/
+    _d_fissxs_d_temp[_qp][i] = 0.0;
+    _d_nsf_d_temp[_qp][i] =
+        _xsec_spline_interpolators["NSF"][i].sampleDerivative(_temperature[_qp]);
+    _d_fisse_d_temp[_qp][i] =
+        _xsec_spline_interpolators["FISSE"][i].sampleDerivative(_temperature[_qp]) * 1e6 *
+        1.6e-19; // convert from MeV to Joules
+    _d_diffcoef_d_temp[_qp][i] =
+        _xsec_spline_interpolators["DIFFCOEF"][i].sampleDerivative(_temperature[_qp]);
+    _d_recipvel_d_temp[_qp][i] =
+        _xsec_spline_interpolators["RECIPVEL"][i].sampleDerivative(_temperature[_qp]);
+    _d_chi_t_d_temp[_qp][i] =
+        _xsec_spline_interpolators["CHI_T"][i].sampleDerivative(_temperature[_qp]);
+    _d_chi_p_d_temp[_qp][i] =
+        _xsec_spline_interpolators["CHI_P"][i].sampleDerivative(_temperature[_qp]);
+  }
+  for (decltype(_num_groups) i = 0; i < _num_groups * _num_groups; ++i)
+  {
+    _gtransfxs[_qp][i] = _xsec_spline_interpolators["GTRANSFXS"][i].sample(_temperature[_qp]);
+    _d_gtransfxs_d_temp[_qp][i] =
+        _xsec_spline_interpolators["GTRANSFXS"][i].sampleDerivative(_temperature[_qp]);
+  }
+  _beta[_qp] = 0;
+  _d_beta_d_temp[_qp] = 0;
+  for (decltype(_num_groups) i = 0; i < _num_precursor_groups; ++i)
+  {
+    _beta_eff[_qp][i] = _xsec_spline_interpolators["BETA_EFF"][i].sample(_temperature[_qp]);
+    _d_beta_eff_d_temp[_qp][i] =
+        _xsec_spline_interpolators["BETA_EFF"][i].sampleDerivative(_temperature[_qp]);
+    _beta[_qp] += _beta_eff[_qp][i];
+    _d_beta_d_temp[_qp] += _d_beta_eff_d_temp[_qp][i];
+    _decay_constant[_qp][i] =
+        _xsec_spline_interpolators["DECAY_CONSTANT"][i].sample(_temperature[_qp]);
+    _d_decay_constant_d_temp[_qp][i] =
+        _xsec_spline_interpolators["DECAY_CONSTANT"][i].sampleDerivative(_temperature[_qp]);
+  }
+}
+
+
+void
+PoisonAbsorptionXSUpdate::computeQpProperties()
+{
+
+  _remxs[_qp].resize(_vec_lengths["REMXS"]);
+  _fissxs[_qp].resize(_vec_lengths["FISSXS"]);
+  _nsf[_qp].resize(_vec_lengths["NSF"]);
+  _fisse[_qp].resize(_vec_lengths["FISSE"]);
+  _diffcoef[_qp].resize(_vec_lengths["DIFFCOEF"]);
+  _recipvel[_qp].resize(_vec_lengths["RECIPVEL"]);
+  _chi_t[_qp].resize(_vec_lengths["CHI_T"]);
+  _chi_p[_qp].resize(_vec_lengths["CHI_P"]);
+  _gtransfxs[_qp].resize(_vec_lengths["GTRANSFXS"]);
+  _beta_eff[_qp].resize(_vec_lengths["BETA_EFF"]);
+  _decay_constant[_qp].resize(_vec_lengths["DECAY_CONSTANT"]);
+  _d_remxs_d_temp[_qp].resize(_vec_lengths["REMXS"]);
+  _d_fissxs_d_temp[_qp].resize(_vec_lengths["FISSXS"]);
+  _d_nsf_d_temp[_qp].resize(_vec_lengths["NSF"]);
+  _d_fisse_d_temp[_qp].resize(_vec_lengths["FISSE"]);
+  _d_diffcoef_d_temp[_qp].resize(_vec_lengths["DIFFCOEF"]);
+  _d_recipvel_d_temp[_qp].resize(_vec_lengths["RECIPVEL"]);
+  _d_chi_t_d_temp[_qp].resize(_vec_lengths["CHI_T"]);
+  _d_chi_p_d_temp[_qp].resize(_vec_lengths["CHI_P"]);
+  _d_gtransfxs_d_temp[_qp].resize(_vec_lengths["GTRANSFXS"]);
+  _d_beta_eff_d_temp[_qp].resize(_vec_lengths["BETA_EFF"]);
+  _d_decay_constant_d_temp[_qp].resize(_vec_lengths["DECAY_CONSTANT"]);
+
+  computeSplineAbsorbingQpProperties();
+}
